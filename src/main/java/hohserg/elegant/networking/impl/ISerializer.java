@@ -79,7 +79,7 @@ public interface ISerializer<Packet> {
     }
 
     default void serialize_ItemStack_Generic(ItemStack value, ByteBuf acc) {
-        serialize_CompoundNBT_Generic(value.write(new CompoundNBT()), acc);
+        new PacketBuffer(acc).writeItemStack(value);
     }
 
     default void serialize_FluidStack_Generic(FluidStack value, ByteBuf acc) {
@@ -158,7 +158,7 @@ public interface ISerializer<Packet> {
     }
 
     default ItemStack unserialize_ItemStack_Generic(ByteBuf buf) {
-        return ItemStack.read(unserialize_NBTTagCompound_Generic(buf));
+        return new PacketBuffer(buf).readItemStack();
     }
 
     default FluidStack unserialize_FluidStack_Generic(ByteBuf buf) {
