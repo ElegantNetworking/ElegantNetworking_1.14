@@ -46,9 +46,9 @@ public class CCLNetworkImpl implements Network<PacketCustom> {
 
     private PacketCustom preparePacket(IByteBufSerializable packet) {
         String packetClassName = packet.getClass().getName();
-        ISerializer serializer = ElegantNetworking.serializerByPacketClassName.get(packetClassName);
-        String channel = ElegantNetworking.channelByPacketClassName.get(packetClassName);
-        Integer id = ElegantNetworking.packetIdByPacketClassName.get(packetClassName);
+        ISerializer serializer = ElegantNetworking.getSerializer(packetClassName);
+        String channel = ElegantNetworking.getChannelForPacket(packetClassName);
+        Integer id = ElegantNetworking.getPacketId(packetClassName);
         PacketCustom packetCustom = new PacketCustom(new ResourceLocation(channel, channel), id);
 
         ByteBuf buffer = Unpooled.buffer();
@@ -71,7 +71,7 @@ public class CCLNetworkImpl implements Network<PacketCustom> {
     }
 
     private <A> A readObjectFromPacket(PacketCustom packetRepresent) {
-        return (A) ElegantNetworking.serializerByPacketClassName.get(ElegantNetworking.packetClassNameById.get(packetRepresent.getType())).unserialize(packetRepresent.readByteBuf());
+        return (A) ElegantNetworking.getSerializer(ElegantNetworking.getPacketName(packetRepresent.getChannel().getNamespace(), packetRepresent.getType())).unserialize(packetRepresent.readByteBuf());
     }
 
     @Override
