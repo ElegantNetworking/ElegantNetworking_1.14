@@ -59,26 +59,26 @@ public class CCLNetworkImpl implements Network<PacketCustom> {
     }
 
     @Override
-    public void onReceiveClient(PacketCustom packetRepresent) {
-        this.<ServerToClientPacket>readObjectFromPacket(packetRepresent)
+    public void onReceiveClient(PacketCustom packetRepresent, String channel) {
+        this.<ServerToClientPacket>readObjectFromPacket(packetRepresent, channel)
                 .onReceive(Minecraft.getInstance());
     }
 
     @Override
-    public void onReceiveServer(PacketCustom packetRepresent, ServerPlayerEntity player) {
-        this.<ClientToServerPacket>readObjectFromPacket(packetRepresent)
+    public void onReceiveServer(PacketCustom packetRepresent, ServerPlayerEntity player, String channel) {
+        this.<ClientToServerPacket>readObjectFromPacket(packetRepresent, channel)
                 .onReceive(player);
     }
 
-    private <A> A readObjectFromPacket(PacketCustom packetRepresent) {
-        return (A) ElegantNetworking.getSerializer(ElegantNetworking.getPacketName(packetRepresent.getChannel().getNamespace(), packetRepresent.getType())).unserialize(packetRepresent.readByteBuf());
+    private <A> A readObjectFromPacket(PacketCustom packetRepresent, String channel) {
+        return (A) ElegantNetworking.getSerializer(ElegantNetworking.getPacketName(channel, packetRepresent.getType())).unserialize(packetRepresent.readByteBuf());
     }
 
     @Override
     public void registerChannel(String channel) {
         PacketCustomChannelBuilder.named(new ResourceLocation(channel, channel))
-                .assignClientHandler(() -> () -> (ICustomPacketHandler.IClientPacketHandler) (packet, mc, handler) -> onReceiveClient(packet))
-                .assignServerHandler(() -> () -> (ICustomPacketHandler.IServerPacketHandler) (packet, sender, handler) -> onReceiveServer(packet, sender))
+                .assignClientHandler(() -> () -> (ICustomPacketHandler.IClientPacketHandler) (packet, mc, handler) -> onReceiveClient(packet, channel))
+                .assignServerHandler(() -> () -> (ICustomPacketHandler.IServerPacketHandler) (packet, sender, handler) -> onReceiveServer(packet, sender, channel))
                 .build();
     }
 }

@@ -11,7 +11,7 @@ public class ElegantNetworking {
     private static Map<String, String> channelByPacketClassName = new HashMap<>();
     private static Map<String, Integer> packetIdByPacketClassName = new HashMap<>();
     private static Map<Pair<String, Integer>, String> packetClassNameByChannelId = new HashMap<>();
-    static Map<String, ISerializer> serializerByPacketClassName = new HashMap<>();
+    private static Map<String, ISerializer> serializerByPacketClassName = new HashMap<>();
 
     public static String getChannelForPacket(String className) {
         return channelByPacketClassName.get(className);
