@@ -11,7 +11,8 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle'
 // Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
+apply plugin: 'maven'
+apply plugin: 'signing'
 
 version = modVersion
 group = modGroup
@@ -94,7 +95,7 @@ dependencies {
     compile fg.deobf("codechicken:CodeChickenLib:1.14.4-3.2.8.374:universal")
     compileOnly 'org.projectlombok:lombok:1.18.8'
     annotationProcessor 'org.projectlombok:lombok:1.18.8', project(':ElegantNetworkingAnnotationProcessor')
-    compile project(':ElegantNetworkingCommon')
+    compileOnly project(':ElegantNetworkingCommon')
     extraLibs project(':ElegantNetworkingCommon')
 
 }
@@ -103,20 +104,87 @@ jar {
     from {
         configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
     }
-    //exclude('hohserg/elegant/networking/test/**')
-    
+    exclude('hohserg/elegant/networking/test/**')
+
     manifest {
         attributes([
-                "Specification-Title": "examplemod",
-                "Specification-Vendor": "examplemodsareus",
-                "Specification-Version": "1", // We are version 1 of ourselves
-                "Implementation-Title": project.name,
-                "Implementation-Version": "${version}",
-                "Implementation-Vendor" :"examplemodsareus",
+                "Specification-Title"     : "elegant_networking",
+                "Specification-Vendor"    : "elegant_networking",
+                "Specification-Version"   : "1", // We are version 1 of ourselves
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : "${version}",
+                "Implementation-Vendor"   : "elegant_networking",
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
 }
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+    exclude('hohserg/elegant/networking/test/**')
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+    exclude('hohserg/elegant/networking/test/**')
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+signing {
+    required { project.hasProperty("signing.keyId") }
+    sign configurations.archives
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+            repository(url: releasesRepoUrl/*'file://localhost/' + new File(project.getProjectDir(),'repo').getAbsolutePath()*/) {
+                if (project.hasProperty("ossrhUsername"))
+                    authentication userName: "$ossrhUsername", password: "$ossrhPassword"
+            }
+
+            pom.artifactId = 'elegant-networking-1.14'
+            pom.project {
+                name 'ElegantNetworking MinecraftForge 1.14 library'
+                packaging 'jar'
+                description 'This is a runtime library of ElegantNetworking for MinecraftForge 1.14'
+                url 'https://github.com/ElegantNetworking/ElegantNetworkingRoot'
+
+                scm {
+                    connection = 'scm:git:https://github.com/ElegantNetworking/ElegantNetworking_1.14.git'
+                    developerConnection = 'scm:git:git@github.com:https://github.com/ElegantNetworking/ElegantNetworking_1.14.git'
+                    url = 'https://github.com/ElegantNetworking/ElegantNetworking_1.14'
+                }
+
+                licenses {
+                    license {
+                        name = 'GNU Lesser General Public License v3.0'
+                        url = 'https://raw.githubusercontent.com/ElegantNetworking/ElegantNetworking_1.14/master/LICENSE.md'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'hohserg'
+                        name = 'hohserg'
+                        email = 'hohserg1@yandex.ru'
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 processResources {
     // This will ensure that this task is redone when the versions change.
