@@ -78,6 +78,7 @@ minecraft {
 
 repositories {
     mavenCentral()
+    maven { url = 'https://files.minecraftforge.net/maven' }
     maven {
         name = "chickenbones"
         url = "https://chickenbones.net/maven" //or https://maven.covers1624.net/
@@ -181,6 +182,12 @@ uploadArchives {
                     }
                 }
             }
+            
+            pom.whenConfigured {
+                p -> 
+                    p.dependencies.get(0).version = "1.14.4-3.2.8.374"
+                    p.dependencies.get(0).classifier = "universal"
+            }        
         }
     }
 }
