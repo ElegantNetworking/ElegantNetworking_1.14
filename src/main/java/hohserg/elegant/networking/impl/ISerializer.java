@@ -1,5 +1,6 @@
 package hohserg.elegant.networking.impl;
 
+import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
@@ -12,6 +13,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTSizeTracker;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.potion.Potion;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fluids.FluidStack;
@@ -33,26 +35,20 @@ public interface ISerializer<Packet> extends ISerializerBase<Packet> {
     }
 
     default void serialize_CompoundNBT_Generic(CompoundNBT value, ByteBuf acc) {
-        if (value != null)
-            try {
-                acc.writeBoolean(true);
-                CompressedStreamTools.write(value, new ByteBufOutputStream(acc));
-            } catch (IOException e) {
-                throw new EncoderException("Failed to write CompoundNBT to packet.", e);
-            }
-        else
-            acc.writeBoolean(false);
+        Preconditions.checkNotNull(value);
+        try {
+            CompressedStreamTools.write(value, new ByteBufOutputStream(acc));
+        } catch (IOException e) {
+            throw new EncoderException("Failed to write CompoundNBT to packet.", e);
+        }
     }
 
     default CompoundNBT unserialize_CompoundNBT_Generic(ByteBuf buf) {
-        if (buf.readBoolean())
-            try {
-                return CompressedStreamTools.read(new ByteBufInputStream(buf), new NBTSizeTracker(2097152L));
-            } catch (IOException e) {
-                throw new EncoderException("Failed to read CompoundNBT from packet.", e);
-            }
-        else
-            return null;
+        try {
+            return CompressedStreamTools.read(new ByteBufInputStream(buf), new NBTSizeTracker(2097152L));
+        } catch (IOException e) {
+            throw new EncoderException("Failed to read CompoundNBT from packet.", e);
+        }
     }
 
     default void serialize_ItemStack_Generic(ItemStack value, ByteBuf acc) {
