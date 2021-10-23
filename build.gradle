@@ -95,7 +95,7 @@ repositories {
 }
 
 configurations {
-    extraLibs
+    extraLibs { transitive = false }
 }
 
 dependencies {
